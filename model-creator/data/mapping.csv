@@ -1,0 +1,21 @@
+,amino_acid,three_letter_code,one_letter_code,hydro,conf_simil
+0,alanine,ala,A,U,A
+1,arginine,arg,R,B,A
+2,asparagine,asn,N,B,C
+3,aspartic acid,asp,D,B,C
+4,cysteine,cys,C,U,A
+5,glutamic acid,glu,E,B,A
+6,glutamine,gln,Q,B,A
+7,glycine,gly,G,O,D
+8,histidine,his,H,B,E
+9,isoleucine,ile,I,X,G
+10,leucine,leu,L,X,A
+11,lysine,lys,K,B,A
+12,methionine,met,M,U,A
+13,phenylalanine,phe,F,X,E
+14,proline,pro,P,J,B
+15,serine,ser,S,O,F
+16,threonine,thr,T,O,G
+17,tryptophan,trp,W,J,E
+18,tyrosine,tyr,Y,J,E
+19,valine,val,V,X,G
