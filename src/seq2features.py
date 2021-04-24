@@ -146,14 +146,14 @@ class W2V_Model(object):
     
 class GetModels():
     @staticmethod
-    def singles(model_loc, modelComb):
+    def from_param_dict(model_loc, param_dict):
         import os
-        from res.runBuilder import RunBuilder
+        from src.runBuilder import RunBuilder
         models = os.listdir(model_loc)
         models = [model_loc+i for i in models]
         models.sort()
     
-        modelParams = RunBuilder.get_runs(modelComb)
+        modelParams = RunBuilder.get_runs(param_dict)
         W2V_models = []
         for param in modelParams:
             string = f'{param.alphabet}_G{param.kGram}_S{param.vecSize}_W{param.window}.model'
@@ -164,7 +164,7 @@ class GetModels():
                     model.set_attributes_byName(address)
 
             if model is None:
-                print(string, '.....Pattern Not Found!!')
+                print(string, '\t.....Pattern Not Found!!')
             else:
                 W2V_models.append(model)
                 
