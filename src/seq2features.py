@@ -7,33 +7,59 @@ from itertools import product
 class Transformer(object):
     """docstring for ."""
 
-    def __init__(self):
-        
-        self.transCodes = pd.read_csv('./model/data/mapping.csv')
+    def __init__(self, transCodes_csv = None):
+        self.transCodes = None
 
         self.W2V_models = None
         self.GappedPairFreq = None
         self.ProtVecFlag = False
 
+        if transCodes_csv:
+            self.transCodes = pd.read_csv(transCodes_csv)
+
         self.xData = None
         self.yData = None
 
-    def set_modelList(self, W2V_models, ProtVec=None, GappedPairFreq=False):
+    def set_modelList(self, RA2V_models=[], ProtVec=None, GappedPairFreq=False):
+
+        if RA2V_models and self.transCodes is None:
+            raise ValueError("Need to initialise Transformer with location of 'alphabet mapping csv' to get RA2Vec Vectors")
 
         self.ProtVec = ProtVec
         self.GappedPairFreq = GappedPairFreq
         
-        if isinstance(W2V_models, list):
-            self.W2V_models = W2V_models.copy()
+        if isinstance(RA2V_models, list):
+            self.W2V_models = RA2V_models.copy()
         else:
-            self.W2V_models = [W2V_models]
+            self.W2V_models = [RA2V_models]
 
         if self.ProtVec is not None:
             self.W2V_models.append(self.ProtVec)
             self.ProtVecFlag = True
 
+    def set_data(self, data, target):
+        xData, yData = [], target
+        
+        for model in self.W2V_models:
+            w2vModel_gen = gensim.models.Word2Vec.load(model.location)
+            kGrams       = model.kGram
+            translation  = model.Model
+            transDict    = self._get_transDict(translation)
+
+            X = self._get_embed(data, w2vModel_gen, transDict, kGrams)
+            xData.append(X)
+        xData = np.concatenate(xData, 1)
+
+        if self.GappedPairFreq:
+            X_gf = self._get_pairGapFreq(data, 3, None)
+            xData = np.concatenate((xData, X_gf), 1)
+
+        self.xData = xData
+        self.yData = target
+        print('Done! Features are saved as model attributes; xData and yData')
+
     def _get_transDict(self, trans):
-        if trans == 'ProtVec':
+        if trans == 'prot_vec':
             return None
 
         amino = self.transCodes
@@ -42,7 +68,7 @@ class Transformer(object):
             dic[ord(amino['one_letter_code'][i])] = ord(amino[trans][i])
         return dic
 
-    def get_seq2vec(self, seq, w2vModel_gen, transDict, kGrams):
+    def _get_seq2vec(self, seq, w2vModel_gen, transDict, kGrams):
         if transDict is not None:
             seq = seq.translate(transDict)
 
@@ -62,10 +88,10 @@ class Transformer(object):
 
         return seq2vec
 
-    def get_embed(self, data, w2vModel_gen, transDict, kGrams):
+    def _get_embed(self, data, w2vModel_gen, transDict, kGrams):
         xData = []
         for seq in data:
-            seq2vec = self.get_seq2vec(seq, w2vModel_gen, transDict, kGrams)
+            seq2vec = self._get_seq2vec(seq, w2vModel_gen, transDict, kGrams)
             xData.append(seq2vec)
         return np.array(xData)
 
@@ -94,33 +120,12 @@ class Transformer(object):
 
         return np.array(list(amino_pair_counts_.values()), 'float32')
 
-    def get_pairGapFreq(self, data, gap_size, transDict):
+    def _get_pairGapFreq(self, data, gap_size, transDict):
         X_gf = []
         for seq in data:
             x_gf = self._gen_pairGapFreq(seq, gap_size, transDict)
             X_gf.append(x_gf)
         return np.array(X_gf)
-
-    def set_data(self, data, target):
-        xData = []
-        for model in self.W2V_models:
-            w2vModel_gen = gensim.models.Word2Vec.load(model.location)
-            kGrams = model.kGram
-            translation = model.Model
-
-            transDict = self._get_transDict(translation)
-
-            X = self.get_embed(data, w2vModel_gen, transDict, kGrams)
-            xData.append(X)
-        xData = np.concatenate(xData, 1)
-
-        if self.GappedPairFreq:
-            X_gf = self.get_pairGapFreq(data, 3, None)
-            xData = np.concatenate((xData, X_gf), 1)
-        yData = target
-
-        self.xData = xData
-        self.yData = target
 
 class W2V_Model(object):
     def __init__(self, loc=None):
