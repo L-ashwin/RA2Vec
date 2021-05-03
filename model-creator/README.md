@@ -15,7 +15,7 @@ This notebook uses protein sequences from [UniProt](https://www.uniprot.org/)'s 
   2. Prepare the Corpus (*SentenceGenerator*)  
     - get the sequences from UniProt  
     - remove sequences that contain uncommon amino acids  
-    - translate sequences from initial 20 letter representation to reduced alphabet representation 
+    - translate sequences from initial 20 letter representation to reduced alphabet representation  
     - create sentences from each of the sequences with given kGram size.  
     - *SentenceGenerator* object yields one sentence at a time  
   3. Word2Vec model training  
